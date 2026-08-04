@@ -1,21 +1,14 @@
 import React from 'react';
 
-const Loader: React.FC = () => {
-  return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh', 
-      textAlign: 'center' 
-    }}>
-      <img 
-        src={'https://cdn.dribbble.com/users/1082816/screenshots/2964780/media/c6a1719a3e5f18338963c44e7c0e3817.gif'} 
-        alt="Loading..." 
-        style={{ maxWidth: '100%', height: 'auto' }} 
-      />
-    </div>
-  );
-};
+/**
+ * Self-contained CSS spinner — no external asset, so it can't be blocked,
+ * rate-limited or slowed down by a third-party host.
+ */
+const Loader: React.FC = () => (
+  <div className="loader" role="status" aria-live="polite">
+    <div className="loader__ring" aria-hidden="true" />
+    <span className="sr-only">Loading the game</span>
+  </div>
+);
 
 export default Loader;

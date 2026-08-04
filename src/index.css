@@ -1,4 +1,3 @@
-
 *,
 *::before,
 *::after {
@@ -8,24 +7,33 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: Lato, Arial, sans-serif;
+  overscroll-behavior: none;
 }
 
-.button-image {
-  width: 50px;
-  height: auto;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
+
+/* ---------- owl ---------- */
 
 .main-image {
-  width: 350px;
+  width: clamp(200px, 34vw, 340px);
   height: auto;
 }
 
 .eye-image {
-  width: 70px;
+  width: 20%;
   height: auto;
   position: absolute;
-  
+  will-change: transform;
 }
 
 .eye-left {
@@ -38,46 +46,256 @@ body {
   top: 52%;
 }
 
+/*
+ * Hit zone: sits over the beak. Never scaled — the engine measures this rect to
+ * decide whether an insect was dropped in the mouth.
+ */
+.mouth-zone {
+  position: absolute;
+  left: 53%;
+  top: 70%;
+  width: 34%;
+  height: 26%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* The throat that appears as the beak opens. */
+.mouth-visual {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: 62%;
+  height: 78%;
+  margin-left: -31%;
+  border-radius: 46% 46% 50% 50% / 22% 22% 78% 78%;
+  background: radial-gradient(ellipse at 50% 12%, #8d2233 0%, #55101d 55%, #2c0710 100%);
+  box-shadow: inset 0 6px 10px rgba(0, 0, 0, 0.55);
+  transform-origin: top center;
+  transform: scaleY(0.04);
+  opacity: 0;
+  transition: transform 150ms cubic-bezier(0.34, 1.4, 0.64, 1), opacity 120ms ease;
+}
+
+/* Insect held over the mouth (or flying into it) — open wide. */
+.mouth-zone--hot .mouth-visual {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+.mouth-visual--chomp {
+  animation: chomp 450ms cubic-bezier(0.36, 0, 0.2, 1) forwards;
+}
+
+@keyframes chomp {
+  0% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  25% {
+    opacity: 1;
+    transform: scaleY(1.28);
+  }
+  70% {
+    opacity: 1;
+    transform: scaleY(0.04);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0.04);
+  }
+}
+
+/* The whole head reacts when something goes down. */
+.owl-face--swallow {
+  animation: swallow 450ms ease-out;
+}
+
+@keyframes swallow {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+  35% {
+    transform: scale(1.05, 0.94) translateY(4px);
+  }
+  70% {
+    transform: scale(0.99, 1.02) translateY(-2px);
+  }
+}
+
+/* ---------- insects ---------- */
+
+.insect {
+  animation: pop-in 220ms ease-out;
+}
+
+.insect:focus-visible {
+  outline: 3px solid #ffd166;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
 .insect-image {
-  width: 100px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* About to escape — flash so the player can prioritise it. */
+.insect--fleeing .insect-image {
+  animation: flee 420ms ease-in-out infinite;
+}
+
+@keyframes flee {
+  0%,
+  100% {
+    filter: none;
+  }
+  50% {
+    filter: drop-shadow(0 0 10px #ff4d4d) brightness(1.25);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.button-image {
+  width: 44px;
   height: auto;
 }
 
-.bounce-out {
-  animation: bounceOut 1s ease-in-out forwards;
+/* ---------- hud ---------- */
 
+.hud {
+  background: rgba(34, 26, 74, 0.72);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
-@keyframes bounceOut {
-  0% {
-    transform: scale(1);
-    background-color: white;
+.life {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.7);
+  transition: background-color 200ms ease, box-shadow 200ms ease;
+}
+
+.life--lost {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+}
+
+.multiplier--hot {
+  color: #ffd166;
+  text-shadow: 0 0 12px rgba(255, 209, 102, 0.6);
+}
+
+.popup {
+  position: absolute;
+  font-weight: 900;
+  font-size: 22px;
+  color: #ffd166;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  animation: float-up 900ms ease-out forwards;
+}
+
+@keyframes float-up {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-56px) scale(1.35);
+  }
+}
+
+/* ---------- overlay ---------- */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(34, 26, 74, 0.82);
+  backdrop-filter: blur(4px);
+  animation: fade-in 220ms ease-out;
+}
+
+.overlay__panel {
+  text-align: center;
+  color: #f4f4f2;
+  max-width: 480px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
     opacity: 1;
   }
-  20% {
-    transform: scale(1.1);
-    background-color: white;
-    opacity: 0.8;
+}
+
+/* ---------- loader ---------- */
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #221a4a;
+}
+
+.loader__ring {
+  width: 56px;
+  height: 56px;
+  border: 5px solid rgba(244, 244, 242, 0.25);
+  border-top-color: #f4f4f2;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  40% {
-    transform: scale(0.9);
-    background-color: #f0f0f0;
-    opacity: 0.6;
+}
+
+/* Respect users who ask for less motion: keep state changes, drop the flourish. */
+@media (prefers-reduced-motion: reduce) {
+  .insect,
+  .popup,
+  .overlay,
+  .owl-face--swallow,
+  .mouth-visual--chomp,
+  .insect--fleeing .insect-image {
+    animation: none;
   }
-  60% {
-    transform: scale(1.03);
-    background-color: #e0e0e0;
-    opacity: 0.4;
+
+  .mouth-visual {
+    transition: none;
   }
-  80% {
-    transform: scale(0.95);
-    background-color: #d0d0d0;
-    opacity: 0.2;
+
+  .insect--fleeing .insect-image {
+    filter: drop-shadow(0 0 10px #ff4d4d) brightness(1.25);
   }
-  100% {
-    transform: scale(0.8);
-    background-color: transparent;
+
+  .popup {
     opacity: 0;
   }
 }
-

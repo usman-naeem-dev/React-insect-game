@@ -1,42 +1,104 @@
 import React from 'react';
-import { Box, Container } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import InsectButton from './InsectButton';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { insectsData } from '../data/insectsData';
-import Owl from './Owl';
 import Insect from './Insect';
-import bg from '../assets/background/bg.png'
-import { useMyContext } from '../context/Context';
+import Owl from './Owl';
+import Hud from './Hud';
+import Overlay from './Overlay';
+import bg from '../assets/background/bg.png';
+import { insectsData } from '../data/insectsData';
+import { useGameActions, useGameView } from '../context/gameContext';
 
 const Main: React.FC = () => {
-  const { insects } = useMyContext();
+  const { insects, popups, status } = useGameView();
+  const { playfieldRef } = useGameActions();
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <Box
+      component="main"
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        overflow: 'hidden',
+        backgroundImage: `url(${bg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <Box sx={{ position: 'relative', zIndex: 2, pt: '76px' }}>
+        <Stack alignItems="center">
+          <Hud />
+        </Stack>
+        <Box sx={{ mt: { xs: 2, sm: 4 } }}>
+          <Owl />
+        </Box>
+      </Box>
+
+      {/*
+        The playfield is inset between the HUD and the button bar so insects
+        never crawl behind the chrome. It ignores pointer events; only the
+        insects inside it are interactive.
+      */}
       <Box
+        ref={playfieldRef}
+        className="playfield"
         sx={{
-          paddingTop: '100px',
-          width: '100vw',
-          height: '100vh',
-          backgroundImage: `url(${bg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: '150px',
+          bottom: '132px',
+          zIndex: 3,
+          pointerEvents: 'none',
+          '& > *': { pointerEvents: 'auto' },
         }}
       >
-        <Container>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}>
-            {insectsData.map((insect) => (
-              <InsectButton key={insect.id} imgSrc={insect.imgSrc} name={insect.name} />
-            ))}
+        {insects.map((insect) => (
+          <Insect
+            key={insect.id}
+            id={insect.id}
+            type={insect.type}
+            imgSrc={insect.imgSrc}
+            points={insect.points}
+          />
+        ))}
+        {popups.map((popup) => (
+          <Box
+            key={popup.id}
+            className="popup"
+            aria-hidden="true"
+            sx={{ left: popup.x, top: popup.y }}
+          >
+            {popup.text}
           </Box>
-          <Owl />
-          {insects.map((insect) => (
-            <Insect key={insect.id} id={insect.id} type={insect.type} imgSrc={insect.imgSrc} />
-          ))}
-        </Container>
+        ))}
       </Box>
-    </DndProvider>
+
+      <Stack
+        direction="row"
+        spacing={{ xs: 1.5, sm: 3 }}
+        justifyContent="center"
+        sx={{
+          position: 'absolute',
+          bottom: 24,
+          left: 0,
+          right: 0,
+          zIndex: 4,
+        }}
+      >
+        {insectsData.map((species) => (
+          <InsectButton
+            key={species.id}
+            imgSrc={species.imgSrc}
+            name={species.name}
+            points={species.points}
+            disabled={status !== 'playing'}
+          />
+        ))}
+      </Stack>
+
+      <Overlay />
+    </Box>
   );
 };
 

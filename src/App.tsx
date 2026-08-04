@@ -1,26 +1,18 @@
 import React, { Suspense, lazy } from 'react';
 import Context from './context/Context';
 import Loader from './components/Loader';
+import Navbar from './components/Navbar';
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Code-split the playfield: it pulls in the game engine and every sprite.
+const Main = lazy(() => import('./components/Main'));
 
-const Navbar = lazy(() =>
-  delay(1000).then(() => import('./components/Navbar'))
-);
-
-const Main = lazy(() =>
-  delay(1000).then(() => import('./components/Main'))
-);
-
-const App = () => {
-  return (
+const App = () => (
+  <Context>
+    <Navbar />
     <Suspense fallback={<Loader />}>
-      <Context>
-        <Navbar />
-        <Main />
-      </Context>
+      <Main />
     </Suspense>
-  );
-};
+  </Context>
+);
 
 export default App;
